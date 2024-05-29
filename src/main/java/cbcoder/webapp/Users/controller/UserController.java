@@ -4,8 +4,16 @@ import cbcoder.webapp.Users.model.DTOs.UserDTO;
 import cbcoder.webapp.Users.model.User;
 import cbcoder.webapp.Users.services.UserService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequestMapping("/users")
@@ -17,15 +25,69 @@ public class UserController {
 		this.userService = userService;
 	}
 
+	/**
+	 * Register a new user with the details provided in the userDTO object.
+	 * The userDTO object contains the user details like firstName, lastName, email, password, and roles.
+	 * The URI is created using the ServletUriComponentsBuilder and the user details are saved in the database.
+	 * Then the HTTP Status 201 Created is returned with the userDTO object containing the user details saved in the database.
+	 * @param userDTO The userDTO object containing the user details.
+	 * @return ResponseEntity<UserDTO> The userDTO object containing the user details saved in the database.
+	 */
 	@PostMapping("/register")
 	public ResponseEntity<UserDTO> registerUser(@RequestBody @Valid UserDTO userDTO) {
-		UserDTO user = userService.saveUser(userDTO);
+		URI uri = URI.create(
+				ServletUriComponentsBuilder
+						.fromCurrentContextPath()
+						.path("/users/register")
+						.toUriString());
+		return ResponseEntity.created(uri).body(userService.saveUser(userDTO));
+	}
+
+	/**
+	 * Get all users with pagination and sorting options available as query parameters.
+	 * The default values are pageNo=0, pageSize=10, sortBy=userId, which can be overridden by passing the values as query parameters.
+	 * @param pageNo Integer pageNo (default value is 0) for pagination of users list to be fetched.
+	 * @param pageSize Integer pageSize (default value is 10) for pagination of users list to be fetched.
+	 * @param sortBy String sortBy (default value is userId) for sorting of users list to be fetched.
+	 * @return ResponseEntity<Page<User>> Page of users list with pagination and sorting options.
+	 */
+	@GetMapping("/all")
+	public ResponseEntity<Page<User>> getAllUsers(
+			@RequestParam(defaultValue = "0") Integer pageNo,
+			@RequestParam(defaultValue = "10") Integer pageSize,
+			@RequestParam(defaultValue = "userId") String sortBy) {
+		Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by(sortBy));
+		return ResponseEntity.ok(userService.getAllUsers(pageable));
+	}
+
+	/**
+	 * Get the user details based on the userId.
+	 * @param userId The userId of the user to be fetched.
+	 * @return ResponseEntity<User> The user object containing the user details fetched from the database.
+	 */
+	@PutMapping("/{userId}")
+	public ResponseEntity<User> updateUser(@PathVariable Long userId, @RequestBody UserDTO userDTO) {
+		User user = userService.updateUser(userId, userDTO);
 		return ResponseEntity.ok(user);
 	}
 
-	@GetMapping("/all")
-	public ResponseEntity<Iterable<User>> getAllUsers() {
-		return ResponseEntity.ok(userService.getAllUsers());
+	/**
+	 * Get the user details based on the userId.
+	 * @param userId The userId of the user to be fetched.
+	 * @return ResponseEntity<User> The user object containing the user details fetched from the database.
+	 */
+	@GetMapping("/{userId}")
+	public ResponseEntity<User> getUserById(@PathVariable Long userId) {
+		return ResponseEntity.ok(userService.getUserById(userId));
 	}
 
+	/**
+	 * Delete the user based on the userId.
+	 * @param userId The userId of the user to be deleted.
+	 * @return ResponseEntity<Void> The response entity with status 200 OK.
+	 */
+	@DeleteMapping("/{userId}")
+	public ResponseEntity<String> deleteUser(@PathVariable Long userId) {
+		return ResponseEntity.ok(userService.deleteUser(userId));
+	}
 }

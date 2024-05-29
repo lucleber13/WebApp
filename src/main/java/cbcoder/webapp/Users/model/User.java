@@ -119,12 +119,16 @@ public class User implements Serializable {
 		this.updatedDate = updatedDate;
 	}
 
-	public List<Role> getRoles(Role roles) {
+	public List<Role> getRoles() {
 		return this.roles;
 	}
 
 	public void setRoles(List<Role> roles) {
 		this.roles = roles;
+	}
+
+	public String getFullName() {
+		return this.firstName + " " + this.lastName;
 	}
 
 	@Override
