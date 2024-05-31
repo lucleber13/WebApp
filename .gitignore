@@ -31,3 +31,4 @@ build/
 
 ### VS Code ###
 .vscode/
+!/src/main/java/cbcoder/webapp/Users/services/impl/UserServiceReserveImpl.java

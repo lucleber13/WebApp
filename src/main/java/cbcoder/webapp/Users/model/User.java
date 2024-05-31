@@ -2,35 +2,41 @@ package cbcoder.webapp.Users.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "USERS")
 @SequenceGenerator(name = "user_seq", sequenceName = "user_seq", allocationSize = 1)
-public class User implements Serializable {
+public class User implements Serializable, UserDetails {
 	@Serial
 	private static final long serialVersionUID = 4634563456378761L;
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_seq")
+	@Column(nullable = false)
 	private Long userId;
-	@Column(name = "first_name")
+	@Column(name = "first_name", nullable = false)
 	private String firstName;
-	@Column(name = "last_name")
+	@Column(name = "last_name", nullable = false)
 	private String lastName;
-	@Column(name = "email", unique = true)
+	@Column(name = "email", unique = true, nullable = false)
 	@Email
 	private String email;
-	@Column(name = "password")
+	@Column(name = "password", nullable = false)
 	private String password;
-	@Column(name = "active")
-	private Boolean active;
-	@Column(name = "created_date")
+	@Column(name = "enabled")
+	private Boolean enabled;
+	@Column(name = "created_date", updatable = false)
 	@CreatedDate
 	private LocalDateTime createdDate = LocalDateTime.now();
 	@Column(name = "updated_date")
@@ -46,13 +52,46 @@ public class User implements Serializable {
 	public User() {
 	}
 
-	public User(String firstName, String lastName, String email, String password, Boolean active, List<Role> roles) {
+	public User(Long userId, String firstName, String lastName, String email, String password, Boolean enabled, List<Role> roles) {
+		this.userId = userId;
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.email = email;
 		this.password = password;
-		this.active = active;
+		this.enabled = enabled;
 		this.roles = roles;
+	}
+
+	@Override
+	public Collection<? extends GrantedAuthority> getAuthorities() {
+		return this.roles.stream()
+				.map(role -> new SimpleGrantedAuthority(role.getRoleName().name()))
+				.collect(Collectors.toList());
+	}
+
+	@Override
+	public String getUsername() {
+		return email;
+	}
+
+	@Override
+	public boolean isAccountNonExpired() {
+		return true;
+	}
+
+	@Override
+	public boolean isAccountNonLocked() {
+		return true;
+	}
+
+	@Override
+	public boolean isCredentialsNonExpired() {
+		return true;
+	}
+
+	@Override
+	public boolean isEnabled() {
+		return enabled;
 	}
 
 	public Long getUserId() {
@@ -79,28 +118,21 @@ public class User implements Serializable {
 		this.lastName = lastName.toUpperCase().charAt(0) + lastName.substring(1).toLowerCase();
 	}
 
-	public @Email String getEmail() {
-		return email;
-	}
-
 	public void setEmail(@Email String email) {
 		this.email = email;
 	}
 
+	public void setEnabled(Boolean enabled) {
+		this.enabled = enabled;
+	}
+
+	@Override
 	public String getPassword() {
 		return password;
 	}
 
 	public void setPassword(String password) {
 		this.password = password;
-	}
-
-	public Boolean getActive() {
-		return active;
-	}
-
-	public void setActive(Boolean active) {
-		this.active = active;
 	}
 
 	public LocalDateTime getCreatedDate() {
@@ -131,25 +163,24 @@ public class User implements Serializable {
 		return this.firstName + " " + this.lastName;
 	}
 
+	public @Email String getEmail() {
+		return email;
+	}
+
+	public Boolean getEnabled() {
+		return enabled;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-		User user = (User) o;
-		return Objects.equals(getUserId(), user.getUserId())
-				&& Objects.equals(getFirstName(), user.getFirstName())
-				&& Objects.equals(getLastName(), user.getLastName())
-				&& Objects.equals(getEmail(), user.getEmail())
-				&& Objects.equals(getPassword(), user.getPassword())
-				&& Objects.equals(getActive(), user.getActive())
-				&& Objects.equals(getCreatedDate(), user.getCreatedDate())
-				&& Objects.equals(getUpdatedDate(), user.getUpdatedDate())
-				&& Objects.equals(roles, user.roles);
+		if (!(o instanceof User user)) return false;
+		return Objects.equals(getUserId(), user.getUserId());
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(getUserId(), getFirstName(), getLastName(), getEmail(), getPassword(), getActive(), getCreatedDate(), getUpdatedDate(), roles);
+		return Objects.hashCode(getUserId());
 	}
 
 	@Override
@@ -160,7 +191,7 @@ public class User implements Serializable {
 				", lastName='" + lastName + '\'' +
 				", email='" + email + '\'' +
 				", password='" + password + '\'' +
-				", active=" + active +
+				", active=" + enabled +
 				", createdDate=" + createdDate +
 				", updatedDate=" + updatedDate +
 				", roles=" + roles +

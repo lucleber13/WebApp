@@ -11,7 +11,7 @@ public class UserDTO {
 	private String lastName;
 	private String email;
 	private String password;
-	private Boolean active;
+	private Boolean enabled;
 	private LocalDateTime createdDate = LocalDateTime.now();
 	private LocalDateTime updatedDate;
 	private List<RoleDTO> roles;
@@ -19,12 +19,12 @@ public class UserDTO {
 	public UserDTO() {
 	}
 
-	public UserDTO(String firstName, String lastName, String email, String password, Boolean active, List<RoleDTO> roles) {
+	public UserDTO(String firstName, String lastName, String email, String password, Boolean enabled, List<RoleDTO> roles) {
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.email = email;
 		this.password = password;
-		this.active = active;
+		this.enabled = enabled;
 		this.roles = roles;
 	}
 
@@ -52,8 +52,8 @@ public class UserDTO {
 		this.password = password;
 	}
 
-	public void setActive(Boolean active) {
-		this.active = active;
+	public void setEnabled(Boolean enabled) {
+		this.enabled = enabled;
 	}
 
 	public void setCreatedDate(LocalDateTime createdDate) {
@@ -84,8 +84,8 @@ public class UserDTO {
 		return password;
 	}
 
-	public Boolean getActive() {
-		return active;
+	public Boolean getEnabled() {
+		return enabled;
 	}
 
 	public LocalDateTime getCreatedDate() {
@@ -119,7 +119,7 @@ public class UserDTO {
 				", lastName='" + lastName + '\'' +
 				", email='" + email + '\'' +
 				", password='" + password + '\'' +
-				", active=" + active +
+				", active=" + enabled +
 				", createdDate=" + createdDate +
 				", updatedDate=" + updatedDate +
 				", roles=" + roles +

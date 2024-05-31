@@ -2,27 +2,27 @@ package cbcoder.webapp.Users.controller;
 
 import cbcoder.webapp.Users.model.DTOs.UserDTO;
 import cbcoder.webapp.Users.model.User;
-import cbcoder.webapp.Users.services.UserService;
+import cbcoder.webapp.Users.services.UserServiceReserve;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.util.List;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("api/v1/users")
 public class UserController {
 
-	private final UserService userService;
+	private final UserServiceReserve userServiceReserve;
 
-	public UserController(UserService userService) {
-		this.userService = userService;
+	public UserController(UserServiceReserve userServiceReserve) {
+		this.userServiceReserve = userServiceReserve;
 	}
 
 	/**
@@ -40,7 +40,7 @@ public class UserController {
 						.fromCurrentContextPath()
 						.path("/users/register")
 						.toUriString());
-		return ResponseEntity.created(uri).body(userService.saveUser(userDTO));
+		return ResponseEntity.created(uri).body(userServiceReserve.saveUser(userDTO));
 	}
 
 	/**
@@ -52,12 +52,13 @@ public class UserController {
 	 * @return ResponseEntity<Page<User>> Page of users list with pagination and sorting options.
 	 */
 	@GetMapping("/all")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	public ResponseEntity<Page<User>> getAllUsers(
 			@RequestParam(defaultValue = "0") Integer pageNo,
 			@RequestParam(defaultValue = "10") Integer pageSize,
 			@RequestParam(defaultValue = "userId") String sortBy) {
 		Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by(sortBy));
-		return ResponseEntity.ok(userService.getAllUsers(pageable));
+		return ResponseEntity.ok(userServiceReserve.getAllUsers(pageable));
 	}
 
 	/**
@@ -67,7 +68,7 @@ public class UserController {
 	 */
 	@PutMapping("/{userId}")
 	public ResponseEntity<User> updateUser(@PathVariable Long userId, @RequestBody UserDTO userDTO) {
-		User user = userService.updateUser(userId, userDTO);
+		User user = userServiceReserve.updateUser(userId, userDTO);
 		return ResponseEntity.ok(user);
 	}
 
@@ -77,8 +78,9 @@ public class UserController {
 	 * @return ResponseEntity<User> The user object containing the user details fetched from the database.
 	 */
 	@GetMapping("/{userId}")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	public ResponseEntity<User> getUserById(@PathVariable Long userId) {
-		return ResponseEntity.ok(userService.getUserById(userId));
+		return ResponseEntity.ok(userServiceReserve.getUserById(userId));
 	}
 
 	/**
@@ -88,6 +90,6 @@ public class UserController {
 	 */
 	@DeleteMapping("/{userId}")
 	public ResponseEntity<String> deleteUser(@PathVariable Long userId) {
-		return ResponseEntity.ok(userService.deleteUser(userId));
+		return ResponseEntity.ok(userServiceReserve.deleteUser(userId));
 	}
 }

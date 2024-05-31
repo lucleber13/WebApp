@@ -18,3 +18,10 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 server:
   port: 8080
+
+webapp:
+    security:
+        jwt:
+          secret: ee60ad300ec74f5eb736bd1e08845012d748a7737a2d5541b9be3842329d2745
+          expiration: 86400000
+          expiration-refresh: 605000000
