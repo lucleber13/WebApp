@@ -1,8 +1,6 @@
 package cbcoder.webapp.Exceptions.handler;
 
-import cbcoder.webapp.Exceptions.RoleNotFoundException;
-import cbcoder.webapp.Exceptions.UserAlreadyExistsException;
-import cbcoder.webapp.Exceptions.UserNotFoundException;
+import cbcoder.webapp.Exceptions.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -47,5 +45,30 @@ public class ExceptionsHandler {
 		errors.put("message", ex.getMessage());
 		return errors;
 	}
+
+	@ResponseStatus(HttpStatus.LENGTH_REQUIRED)
+	@ExceptionHandler(PasswordLengthNotValidException.class)
+	public Map<String, String> passwordLengthNotValidException(PasswordLengthNotValidException ex) {
+		Map<String, String> errors = new HashMap<>();
+		errors.put("message", ex.getMessage());
+		return errors;
+	}
+
+	@ResponseStatus(HttpStatus.UNAUTHORIZED)
+	@ExceptionHandler(NotAuthorizedAccessException.class)
+	public Map<String, String> notAuthorizedAccessException(NotAuthorizedAccessException ex) {
+		Map<String, String> errors = new HashMap<>();
+		errors.put("message", ex.getMessage());
+		return errors;
+	}
+
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	@ExceptionHandler(EmailNotBindingException.class)
+	public Map<String, String> emailNotBindingException(EmailNotBindingException ex) {
+		Map<String, String> errors = new HashMap<>();
+		errors.put("message", ex.getMessage());
+		return errors;
+	}
+
 
 }

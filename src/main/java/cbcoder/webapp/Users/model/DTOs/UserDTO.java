@@ -1,6 +1,8 @@
 package cbcoder.webapp.Users.model.DTOs;
 
 
+import cbcoder.webapp.Users.model.Role;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -14,12 +16,12 @@ public class UserDTO {
 	private Boolean enabled;
 	private LocalDateTime createdDate = LocalDateTime.now();
 	private LocalDateTime updatedDate;
-	private List<RoleDTO> roles;
+	private List<Role> roles;
 
 	public UserDTO() {
 	}
 
-	public UserDTO(String firstName, String lastName, String email, String password, Boolean enabled, List<RoleDTO> roles) {
+	public UserDTO(String firstName, String lastName, String email, String password, Boolean enabled, List<Role> roles) {
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.email = email;
@@ -64,7 +66,7 @@ public class UserDTO {
 		this.updatedDate = updatedDate;
 	}
 
-	public void setRoles(List<RoleDTO> roles) {
+	public void setRoles(List<Role> roles) {
 		this.roles = roles;
 	}
 
@@ -96,7 +98,7 @@ public class UserDTO {
 		return updatedDate;
 	}
 
-	public List<RoleDTO> getRoles() {
+	public List<Role> getRoles() {
 		return roles;
 	}
 

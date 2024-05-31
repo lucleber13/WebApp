@@ -2,7 +2,9 @@ package cbcoder.webapp.Users.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
-import org.hibernate.annotations.UpdateTimestamp;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.security.core.GrantedAuthority;
@@ -25,20 +27,38 @@ public class User implements Serializable, UserDetails {
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_seq")
 	@Column(nullable = false)
 	private Long userId;
+
 	@Column(name = "first_name", nullable = false)
+	@NotNull(message = "First name cannot be null")
+	@NotBlank(message = "First name cannot be blank")
+	@Size(min = 2, max = 50, message = "First name should be between 2 and 50 characters")
 	private String firstName;
+
 	@Column(name = "last_name", nullable = false)
+	@NotNull(message = "Last name cannot be null")
+	@NotBlank(message = "Last name cannot be blank")
+	@Size(min = 2, max = 50, message = "Last name should be between 2 and 50 characters")
 	private String lastName;
+
 	@Column(name = "email", unique = true, nullable = false)
-	@Email
+	@Email(message = "Email should be valid")
+	@NotNull(message = "Email cannot be null")
+	@NotBlank(message = "Email cannot be blank")
 	private String email;
+
 	@Column(name = "password", nullable = false)
+	@NotNull(message = "Password cannot be null")
+	@NotBlank(message = "Password cannot be blank")
+	@Size(min = 8, max = 100, message = "Password should be between 8 and 100 characters")
 	private String password;
+
 	@Column(name = "enabled")
 	private Boolean enabled;
+
 	@Column(name = "created_date", updatable = false)
 	@CreatedDate
 	private LocalDateTime createdDate = LocalDateTime.now();
+
 	@Column(name = "updated_date")
 	@LastModifiedDate
 	private LocalDateTime updatedDate;
@@ -115,6 +135,15 @@ public class User implements Serializable, UserDetails {
 	}
 
 	public void setLastName(String lastName) {
+		String[] names = lastName.split(" ");
+		if (names.length > 1) {
+			StringBuilder lastNameBuilder = new StringBuilder();
+			for (String name : names) {
+				lastNameBuilder.append(name.toUpperCase().charAt(0)).append(name.substring(1).toLowerCase()).append(" ");
+			}
+			this.lastName = lastNameBuilder.toString().trim();
+			return;
+		}
 		this.lastName = lastName.toUpperCase().charAt(0) + lastName.substring(1).toLowerCase();
 	}
 

@@ -1,19 +1,18 @@
 package cbcoder.webapp.Users.services.impl;
 
-import cbcoder.webapp.Users.model.DTOs.JwtAuthResponse;
-import cbcoder.webapp.Users.model.DTOs.RefreshTokenRequest;
-import cbcoder.webapp.Users.model.DTOs.SignInRequest;
-import cbcoder.webapp.Users.model.DTOs.SignUpRequest;
+import cbcoder.webapp.Exceptions.PasswordLengthNotValidException;
+import cbcoder.webapp.Exceptions.UserAlreadyExistsException;
+import cbcoder.webapp.Users.model.DTOs.*;
 import cbcoder.webapp.Users.model.Role;
 import cbcoder.webapp.Users.model.User;
 import cbcoder.webapp.Users.model.enums.RoleEnum;
 import cbcoder.webapp.Users.repositories.UserRepository;
 import cbcoder.webapp.Users.services.AuthService;
+import org.modelmapper.ModelMapper;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,28 +25,38 @@ public class AuthServiceImpl implements AuthService {
 	private final PasswordEncoder passwordEncoder;
 	private final JwtServiceImpl jwtService;
 	private final AuthenticationManager authenticationManager;
+	private final ModelMapper modelMapper;
 
-	public AuthServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtServiceImpl jwtService, AuthenticationManager authenticationManager) {
+	public AuthServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtServiceImpl jwtService,
+	                       AuthenticationManager authenticationManager, ModelMapper modelMapper) {
 		this.userRepository = userRepository;
 		this.passwordEncoder = passwordEncoder;
 		this.jwtService = jwtService;
 		this.authenticationManager = authenticationManager;
+		this.modelMapper = modelMapper;
 	}
 
 	public User register(SignUpRequest request) {
-		User user = new User();
-		user.setFirstName(request.firstName());
-		user.setLastName(request.lastName());
-		user.setEmail(request.email());
-		user.setPassword(passwordEncoder.encode(request.password()));
-		user.setEnabled(true);
+		UserDTO userDTO = new UserDTO();
+		userDTO.setFirstName(request.firstName());
+		userDTO.setLastName(request.lastName());
+		if (userRepository.existsByEmail(request.email())) {
+			throw new UserAlreadyExistsException("User already exists with email " + request.email());
+		}
+		userDTO.setEmail(request.email());
+		if (request.password().length() < 8) {
+			throw new PasswordLengthNotValidException("Password should be at least 8 characters long");
+		}
+		userDTO.setPassword(passwordEncoder.encode(request.password()));
+		userDTO.setEnabled(true);
 		List<Role> roles = new ArrayList<>();
-		if(request.roles() != null) {
+		if (request.roles() != null) {
 			roles.addAll(request.roles());
 		} else {
 			roles.add(new Role(RoleEnum.ROLE_USER));
 		}
-		user.setRoles(roles);
+		userDTO.setRoles(roles);
+		User user = modelMapper.map(userDTO, User.class);
 		return userRepository.save(user);
 	}
 

@@ -1,17 +1,23 @@
 package cbcoder.webapp.Users.services.impl;
 
+import cbcoder.webapp.Exceptions.EmailNotBindingException;
+import cbcoder.webapp.Exceptions.NotAuthorizedAccessException;
 import cbcoder.webapp.Exceptions.UserAlreadyExistsException;
 import cbcoder.webapp.Exceptions.UserNotFoundException;
 import cbcoder.webapp.Users.model.DTOs.RoleDTO;
 import cbcoder.webapp.Users.model.DTOs.UserDTO;
 import cbcoder.webapp.Users.model.Role;
 import cbcoder.webapp.Users.model.User;
+import cbcoder.webapp.Users.model.enums.RoleEnum;
 import cbcoder.webapp.Users.repositories.RoleRepository;
 import cbcoder.webapp.Users.repositories.UserRepository;
 import cbcoder.webapp.Users.services.UserServiceReserve;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -26,35 +32,15 @@ public class UserServiceReserveImpl implements UserServiceReserve {
 	private final UserRepository userRepository;
 	private final ModelMapper modelMapper;
 	private final RoleRepository roleRepository;
+	private final PasswordEncoder passwordEncoder;
 
 
-	public UserServiceReserveImpl(UserRepository userRepository, ModelMapper modelMapper, RoleRepository roleRepository) {
+	public UserServiceReserveImpl(UserRepository userRepository, ModelMapper modelMapper, RoleRepository roleRepository,
+	                              PasswordEncoder passwordEncoder) {
 		this.userRepository = userRepository;
 		this.modelMapper = modelMapper;
 		this.roleRepository = roleRepository;
-	}
-
-	/**
-	 * Save the user details in the database. The user details are saved based on the userDTO object passed as a parameter.
-	 * The userDTO object contains the user details like firstName, lastName, email, password, and roles.
-	 * The userDTO object is converted to a User object using the modelMapper and saved in the database.
-	 * The saved User object is then converted back to a UserDTO object and returned.
-	 * The support methods findUserByEmail and findRoles are used to find the user by email and roles respectively.
-	 * @param userDTO The userDTO object containing the user details.
-	 * @return UserDTO object containing the user details saved in the database.
-	 */
-	@Override
-	public UserDTO saveUser(UserDTO userDTO) {
-		findUserByEmail(userDTO.getEmail());
-		User user = modelMapper.map(userDTO, User.class);
-		findRoles(userDTO, user);
-//		Role userRole = roleRepository.findByRoleName(RoleEnum.ROLE_USER)
-//				.orElseThrow(() -> new RuntimeException(ROLE_NOT_FOUND + RoleEnum.ROLE_USER));
-//		user.getRoles().add(userRole);
-		User savedUser = userRepository.save(user);
-		UserDTO savedUserDTO;
-		savedUserDTO = modelMapper.map(savedUser, UserDTO.class);
-		return savedUserDTO;
+		this.passwordEncoder = passwordEncoder;
 	}
 
 	/**
@@ -70,18 +56,18 @@ public class UserServiceReserveImpl implements UserServiceReserve {
 		Optional<User> userOptional = userRepository.findById(userId);
 		if (userOptional.isPresent()) {
 			User user = userOptional.get();
-			user.setFirstName(userDTO.getFirstName());
-			user.setLastName(userDTO.getLastName());
-			if (!user.getEmail().equals(userDTO.getEmail())) {
-				findUserByEmail(userDTO.getEmail());
+			if (userDTO.getEmail().equals(user.getEmail())) {
+				user.setFirstName(userDTO.getFirstName());
+				user.setLastName(userDTO.getLastName());
+				user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+				user.setUpdatedDate(LocalDateTime.now());
+				return userRepository.save(user);
+			} else {
+				throw new EmailNotBindingException("Email not matching with the user email");
 			}
-			user.setEmail(userDTO.getEmail());
-			user.setPassword(userDTO.getPassword());
-			user.setUpdatedDate(LocalDateTime.now());
-			findRoles(userDTO, user);
-			return userRepository.save(user);
+		} else {
+			throw new UserNotFoundException(USER_NOT_FOUND + userId);
 		}
-		throw new UserNotFoundException(USER_NOT_FOUND + userId);
 	}
 
 	/**
@@ -94,9 +80,9 @@ public class UserServiceReserveImpl implements UserServiceReserve {
 	private void findRoles(UserDTO userDTO, User user) {
 		List<Role> roles = new ArrayList<>();
 		if (userDTO.getRoles() != null) {
-			for (RoleDTO roleDTO : userDTO.getRoles()) {
-				Role role = roleRepository.findByRoleId(roleDTO.getRoleId())
-						.orElseThrow(() -> new RuntimeException(ROLE_NOT_FOUND + roleDTO.getRoleId()));
+			for (Role roleFind : userDTO.getRoles()) {
+				Role role = roleRepository.findByRoleId(roleFind.getRoleId())
+						.orElseThrow(() -> new RuntimeException(ROLE_NOT_FOUND + roleFind.getRoleId()));
 				roles.add(role);
 			}
 		}

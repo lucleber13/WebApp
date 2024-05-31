@@ -3,7 +3,6 @@ package cbcoder.webapp.Users.controller;
 import cbcoder.webapp.Users.model.DTOs.UserDTO;
 import cbcoder.webapp.Users.model.User;
 import cbcoder.webapp.Users.services.UserServiceReserve;
-import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -11,36 +10,15 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-
-import java.net.URI;
 
 @RestController
-@RequestMapping("api/v1/users")
+@RequestMapping("users")
 public class UserController {
 
 	private final UserServiceReserve userServiceReserve;
 
 	public UserController(UserServiceReserve userServiceReserve) {
 		this.userServiceReserve = userServiceReserve;
-	}
-
-	/**
-	 * Register a new user with the details provided in the userDTO object.
-	 * The userDTO object contains the user details like firstName, lastName, email, password, and roles.
-	 * The URI is created using the ServletUriComponentsBuilder and the user details are saved in the database.
-	 * Then the HTTP Status 201 Created is returned with the userDTO object containing the user details saved in the database.
-	 * @param userDTO The userDTO object containing the user details.
-	 * @return ResponseEntity<UserDTO> The userDTO object containing the user details saved in the database.
-	 */
-	@PostMapping("/register")
-	public ResponseEntity<UserDTO> registerUser(@RequestBody @Valid UserDTO userDTO) {
-		URI uri = URI.create(
-				ServletUriComponentsBuilder
-						.fromCurrentContextPath()
-						.path("/users/register")
-						.toUriString());
-		return ResponseEntity.created(uri).body(userServiceReserve.saveUser(userDTO));
 	}
 
 	/**
@@ -52,7 +30,7 @@ public class UserController {
 	 * @return ResponseEntity<Page<User>> Page of users list with pagination and sorting options.
 	 */
 	@GetMapping("/all")
-	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	@PreAuthorize("hasAuthority('ROLE_USER')")
 	public ResponseEntity<Page<User>> getAllUsers(
 			@RequestParam(defaultValue = "0") Integer pageNo,
 			@RequestParam(defaultValue = "10") Integer pageSize,
@@ -67,6 +45,7 @@ public class UserController {
 	 * @return ResponseEntity<User> The user object containing the user details fetched from the database.
 	 */
 	@PutMapping("/{userId}")
+	@PreAuthorize("hasAnyAuthority('ROLE_SUPERADMIN','ROLE_ADMIN', 'ROLE_USER')")
 	public ResponseEntity<User> updateUser(@PathVariable Long userId, @RequestBody UserDTO userDTO) {
 		User user = userServiceReserve.updateUser(userId, userDTO);
 		return ResponseEntity.ok(user);

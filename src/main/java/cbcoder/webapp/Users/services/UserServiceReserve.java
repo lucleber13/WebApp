@@ -7,7 +7,6 @@ import org.springframework.data.domain.Pageable;
 
 
 public interface UserServiceReserve {
-	UserDTO saveUser(UserDTO userDTO);
 	User updateUser(Long userId ,UserDTO userDTO);
 	String deleteUser(Long userId);
 	Page<User> getAllUsers(Pageable pageable);
