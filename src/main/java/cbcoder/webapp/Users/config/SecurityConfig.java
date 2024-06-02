@@ -43,7 +43,8 @@ public class SecurityConfig {
 				.authorizeHttpRequests(authorizeRequests ->
 						authorizeRequests
 								.requestMatchers("auth/**").permitAll()
-								.requestMatchers("users/**").hasAnyRole("SUPERADMIN", "ADMIN", "USER")
+								.requestMatchers("users/**").hasAnyRole("SUPERADMIN", "ADMIN","SALES")
+								.requestMatchers("superadmin/**").hasRole("SUPERADMIN")
 								.anyRequest()
 								.authenticated())
 				.sessionManagement(sessionManagement ->

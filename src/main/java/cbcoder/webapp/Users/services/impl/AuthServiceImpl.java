@@ -1,11 +1,13 @@
 package cbcoder.webapp.Users.services.impl;
 
 import cbcoder.webapp.Exceptions.PasswordLengthNotValidException;
+import cbcoder.webapp.Exceptions.RoleNotFoundException;
 import cbcoder.webapp.Exceptions.UserAlreadyExistsException;
 import cbcoder.webapp.Users.model.DTOs.*;
 import cbcoder.webapp.Users.model.Role;
 import cbcoder.webapp.Users.model.User;
 import cbcoder.webapp.Users.model.enums.RoleEnum;
+import cbcoder.webapp.Users.repositories.RoleRepository;
 import cbcoder.webapp.Users.repositories.UserRepository;
 import cbcoder.webapp.Users.services.AuthService;
 import org.modelmapper.ModelMapper;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 
 
 @Service
@@ -26,14 +29,16 @@ public class AuthServiceImpl implements AuthService {
 	private final JwtServiceImpl jwtService;
 	private final AuthenticationManager authenticationManager;
 	private final ModelMapper modelMapper;
+	private final RoleRepository roleRepository;
 
 	public AuthServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtServiceImpl jwtService,
-	                       AuthenticationManager authenticationManager, ModelMapper modelMapper) {
+	                       AuthenticationManager authenticationManager, ModelMapper modelMapper, RoleRepository roleRepository) {
 		this.userRepository = userRepository;
 		this.passwordEncoder = passwordEncoder;
 		this.jwtService = jwtService;
 		this.authenticationManager = authenticationManager;
 		this.modelMapper = modelMapper;
+		this.roleRepository = roleRepository;
 	}
 
 	public User register(SignUpRequest request) {
@@ -49,13 +54,12 @@ public class AuthServiceImpl implements AuthService {
 		}
 		userDTO.setPassword(passwordEncoder.encode(request.password()));
 		userDTO.setEnabled(true);
-		List<Role> roles = new ArrayList<>();
-		if (request.roles() != null) {
-			roles.addAll(request.roles());
+		Optional<Role> role = roleRepository.findByRoleId(request.roles().get(0).getRoleId());
+		if (role.isPresent()) {
+			userDTO.setRoles(List.of(role.get()));
 		} else {
-			roles.add(new Role(RoleEnum.ROLE_USER));
+			throw new RoleNotFoundException("Role not found");
 		}
-		userDTO.setRoles(roles);
 		User user = modelMapper.map(userDTO, User.class);
 		return userRepository.save(user);
 	}

@@ -30,7 +30,7 @@ public class UserController {
 	 * @return ResponseEntity<Page<User>> Page of users list with pagination and sorting options.
 	 */
 	@GetMapping("/all")
-	@PreAuthorize("hasAuthority('ROLE_USER')")
+	@PreAuthorize("hasAnyAuthority('ROLE_SUPERADMIN','ROLE_ADMIN', 'ROLE_SALES')")
 	public ResponseEntity<Page<User>> getAllUsers(
 			@RequestParam(defaultValue = "0") Integer pageNo,
 			@RequestParam(defaultValue = "10") Integer pageSize,
@@ -45,7 +45,7 @@ public class UserController {
 	 * @return ResponseEntity<User> The user object containing the user details fetched from the database.
 	 */
 	@PutMapping("/{userId}")
-	@PreAuthorize("hasAnyAuthority('ROLE_SUPERADMIN','ROLE_ADMIN', 'ROLE_USER')")
+	@PreAuthorize("hasAnyAuthority('ROLE_SUPERADMIN','ROLE_ADMIN', 'ROLE_SALES')")
 	public ResponseEntity<User> updateUser(@PathVariable Long userId, @RequestBody UserDTO userDTO) {
 		User user = userServiceReserve.updateUser(userId, userDTO);
 		return ResponseEntity.ok(user);
@@ -57,7 +57,7 @@ public class UserController {
 	 * @return ResponseEntity<User> The user object containing the user details fetched from the database.
 	 */
 	@GetMapping("/{userId}")
-	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	@PreAuthorize("hasAnyAuthority('ROLE_SUPERADMIN','ROLE_ADMIN', 'ROLE_SALES')")
 	public ResponseEntity<User> getUserById(@PathVariable Long userId) {
 		return ResponseEntity.ok(userServiceReserve.getUserById(userId));
 	}
@@ -68,6 +68,7 @@ public class UserController {
 	 * @return ResponseEntity<Void> The response entity with status 200 OK.
 	 */
 	@DeleteMapping("/{userId}")
+	@PreAuthorize("hasAnyAuthority('ROLE_SUPERADMIN','ROLE_ADMIN', 'ROLE_SALES')")
 	public ResponseEntity<String> deleteUser(@PathVariable Long userId) {
 		return ResponseEntity.ok(userServiceReserve.deleteUser(userId));
 	}

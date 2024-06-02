@@ -11,4 +11,6 @@ public interface UserServiceReserve {
 	String deleteUser(Long userId);
 	Page<User> getAllUsers(Pageable pageable);
 	User getUserById(Long userId);
+	User createAdmin(UserDTO userDTO);
+	User revokeAdmin(Long userId);
 }
