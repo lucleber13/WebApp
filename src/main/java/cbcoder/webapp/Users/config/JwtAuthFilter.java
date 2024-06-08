@@ -1,6 +1,6 @@
 package cbcoder.webapp.Users.config;
 
-import cbcoder.webapp.Users.services.UserService;
+import cbcoder.webapp.Users.services.UserSecurityService;
 import cbcoder.webapp.Users.services.impl.JwtServiceImpl;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -20,11 +20,11 @@ import java.io.IOException;
 public class JwtAuthFilter extends OncePerRequestFilter {
 
 	private final JwtServiceImpl jwtService;
-	private final UserService userService;
+	private final UserSecurityService userSecurityService;
 
-	public JwtAuthFilter(JwtServiceImpl jwtService, UserService userDetails) {
+	public JwtAuthFilter(JwtServiceImpl jwtService, UserSecurityService userDetails) {
 		this.jwtService = jwtService;
-		this.userService = userDetails;
+		this.userSecurityService = userDetails;
 	}
 
 	@Override
@@ -43,7 +43,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 		jwt = authorizationHeader.substring(7);
 		userEmail = jwtService.getUsername(jwt);
 		if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-			UserDetails userDetails = userService.userDetailsService().loadUserByUsername(userEmail);
+			UserDetails userDetails = userSecurityService.userDetailsService().loadUserByUsername(userEmail);
 			if (jwtService.validateToken(jwt, userDetails)) {
 				SecurityContext security = SecurityContextHolder.createEmptyContext();
 				UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(

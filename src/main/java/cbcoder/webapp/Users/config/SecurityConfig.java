@@ -1,6 +1,6 @@
 package cbcoder.webapp.Users.config;
 
-import cbcoder.webapp.Users.services.UserService;
+import cbcoder.webapp.Users.services.UserSecurityService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
@@ -26,11 +26,11 @@ public class SecurityConfig {
 
 	private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
 	private final JwtAuthFilter jwtAuthFilter;
-	private final UserService userService;
+	private final UserSecurityService userSecurityService;
 
-	public SecurityConfig(JwtAuthFilter jwtAuthFilter, UserService userService) {
+	public SecurityConfig(JwtAuthFilter jwtAuthFilter, UserSecurityService userSecurityService) {
 		this.jwtAuthFilter = jwtAuthFilter;
-		this.userService = userService;
+		this.userSecurityService = userSecurityService;
 	}
 
 	@Bean
@@ -56,7 +56,7 @@ public class SecurityConfig {
 	@Bean
 	public AuthenticationProvider authenticationProvider() {
 		DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-		provider.setUserDetailsService(userService.userDetailsService());
+		provider.setUserDetailsService(userSecurityService.userDetailsService());
 		provider.setPasswordEncoder(passwordEncoder());
 		return provider;
 	}

@@ -6,7 +6,6 @@ import cbcoder.webapp.Exceptions.UserAlreadyExistsException;
 import cbcoder.webapp.Users.model.DTOs.*;
 import cbcoder.webapp.Users.model.Role;
 import cbcoder.webapp.Users.model.User;
-import cbcoder.webapp.Users.model.enums.RoleEnum;
 import cbcoder.webapp.Users.repositories.RoleRepository;
 import cbcoder.webapp.Users.repositories.UserRepository;
 import cbcoder.webapp.Users.services.AuthService;
@@ -15,7 +14,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -54,7 +52,7 @@ public class AuthServiceImpl implements AuthService {
 		}
 		userDTO.setPassword(passwordEncoder.encode(request.password()));
 		userDTO.setEnabled(true);
-		Optional<Role> role = roleRepository.findByRoleId(request.roles().get(0).getRoleId());
+		Optional<Role> role = roleRepository.findByRoleId(request.roles().getFirst().getRoleId());
 		if (role.isPresent()) {
 			userDTO.setRoles(List.of(role.get()));
 		} else {

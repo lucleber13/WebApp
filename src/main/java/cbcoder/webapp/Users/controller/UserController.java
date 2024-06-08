@@ -2,7 +2,7 @@ package cbcoder.webapp.Users.controller;
 
 import cbcoder.webapp.Users.model.DTOs.UserDTO;
 import cbcoder.webapp.Users.model.User;
-import cbcoder.webapp.Users.services.UserServiceReserve;
+import cbcoder.webapp.Users.services.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -15,10 +15,10 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("users")
 public class UserController {
 
-	private final UserServiceReserve userServiceReserve;
+	private final UserService userService;
 
-	public UserController(UserServiceReserve userServiceReserve) {
-		this.userServiceReserve = userServiceReserve;
+	public UserController(UserService userService) {
+		this.userService = userService;
 	}
 
 	/**
@@ -36,7 +36,7 @@ public class UserController {
 			@RequestParam(defaultValue = "10") Integer pageSize,
 			@RequestParam(defaultValue = "userId") String sortBy) {
 		Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by(sortBy));
-		return ResponseEntity.ok(userServiceReserve.getAllUsers(pageable));
+		return ResponseEntity.ok(userService.getAllUsers(pageable));
 	}
 
 	/**
@@ -47,7 +47,7 @@ public class UserController {
 	@PutMapping("/{userId}")
 	@PreAuthorize("hasAnyAuthority('ROLE_SUPERADMIN','ROLE_ADMIN', 'ROLE_SALES')")
 	public ResponseEntity<User> updateUser(@PathVariable Long userId, @RequestBody UserDTO userDTO) {
-		User user = userServiceReserve.updateUser(userId, userDTO);
+		User user = userService.updateUser(userId, userDTO);
 		return ResponseEntity.ok(user);
 	}
 
@@ -59,7 +59,7 @@ public class UserController {
 	@GetMapping("/{userId}")
 	@PreAuthorize("hasAnyAuthority('ROLE_SUPERADMIN','ROLE_ADMIN', 'ROLE_SALES')")
 	public ResponseEntity<User> getUserById(@PathVariable Long userId) {
-		return ResponseEntity.ok(userServiceReserve.getUserById(userId));
+		return ResponseEntity.ok(userService.getUserById(userId));
 	}
 
 	/**
@@ -70,6 +70,6 @@ public class UserController {
 	@DeleteMapping("/{userId}")
 	@PreAuthorize("hasAnyAuthority('ROLE_SUPERADMIN','ROLE_ADMIN', 'ROLE_SALES')")
 	public ResponseEntity<String> deleteUser(@PathVariable Long userId) {
-		return ResponseEntity.ok(userServiceReserve.deleteUser(userId));
+		return ResponseEntity.ok(userService.deleteUser(userId));
 	}
 }
