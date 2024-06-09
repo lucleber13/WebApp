@@ -1,0 +1,5 @@
+version: "1.0"
+profile:
+  name: qodana.starter
+linter: jetbrains/qodana-jvm:2024.1
+projectJDK: "22"
